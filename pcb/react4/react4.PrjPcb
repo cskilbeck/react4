@@ -1163,10 +1163,10 @@ UpdateToLatestRevision=1
 PartTypes=0
 
 [NetInfos]
-Net1=NetName=BTN1|NetColor=$006A1072
-Net2=NetName=BTN2|NetColor=$006A1072
-Net3=NetName=BTN3|NetColor=$006A1072
-Net4=NetName=BTN4|NetColor=$006A1072
+Net1=NetName=BTN1|NetColor=$006724DA
+Net2=NetName=BTN2|NetColor=$006724DA
+Net3=NetName=BTN3|NetColor=$006724DA
+Net4=NetName=BTN4|NetColor=$006724DA
 Net5=NetName=COL0|NetColor=$001D7CDD
 Net6=NetName=COL1|NetColor=$001D7CDD
 Net7=NetName=COL2|NetColor=$001D7CDD
