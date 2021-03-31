@@ -1,3 +1,9 @@
 pcb/react4/__Previews
 pcb/react4/History
 pcb/react4/Logs
+firmware/MDK-ARM/firmware
+*.lst
+firmware/MDK-ARM/DebugConfig
+firmware/MDK-ARM/firmware.uvguix.*
+firmware/MDK-ARM/firmware.uvoptx
+~*.*
