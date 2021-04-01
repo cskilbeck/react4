@@ -1,0 +1,21 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: react4.PcbDoc   01/04/2021  15:08:15
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : react4-RoundHoles.TXT
+ASCII SlotHoles File : react4-SlotHoles.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      0.5mm (20mil)                                             Round             190       PTH        0.00mm (0.00inch)
+T2      0.75mm (30mil)                                            Round             34        PTH        0.00mm (0.00inch)
+T3      0.75mm (30mil)                                            Slot              2         PTH        0.00mm (0.00inch)
+T4      0.8mm (31mil)                                             Round             6         PTH        0.00mm (0.00inch)
+T5      0.95mm (37mil)                                            Round             13        PTH        0.00mm (0.00inch)
+T6      1mm (39mil)                                               Round             4         PTH        0.00mm (0.00inch)
+T7      3mm (118mil)                                              Round             8         PTH        0.00mm (0.00inch)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              257
+
+Total Processing Time (hh:mm:ss) : 00:00:00

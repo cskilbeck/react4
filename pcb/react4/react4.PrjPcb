@@ -295,7 +295,7 @@ OutputDefault20=0
 [OutputGroup2]
 Name=Simulator Outputs
 Description=
-TargetPrinter=Kyocera ECOSYS P5026cdn
+TargetPrinter=Brother QL-500
 PrinterOptions=Record=PrinterOptions|Copies=1|Duplex=1|TrueTypeOptions=3|Collate=1|PrintJobKind=1|PrintWhat=1
 
 [OutputGroup3]
@@ -831,8 +831,8 @@ Type30=1
 Type31=1
 Type32=1
 Type33=1
-Type34=1
-Type35=1
+Type34=0
+Type35=0
 Type36=1
 Type37=1
 Type38=1
