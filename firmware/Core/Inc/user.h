@@ -6,9 +6,8 @@ extern "C" {
 #endif
 
 void user_main(void);
+void on_systick(void);
 
-extern volatile unsigned long ticks;
-    
 #if defined(__cplusplus)
 }
 #endif

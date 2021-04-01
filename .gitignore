@@ -7,3 +7,5 @@ firmware/MDK-ARM/DebugConfig
 firmware/MDK-ARM/firmware.uvguix.*
 firmware/MDK-ARM/firmware.uvoptx
 ~*.*
+firmware/MDK-ARM/JLink*.ini
+firmware/MDK-ARM/JLink*.txt
