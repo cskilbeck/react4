@@ -1,25 +1,8 @@
 #include "main.h"
 #include "util.h"
+#include "song.h"
 
 volatile unsigned long ticks = 0;
-
-struct note
-{
-    uint16 timer;
-    uint16 delay;
-};
-
-note charge[] = {
-    { 15306	,100  } ,
-    { 11467	,100  } ,
-    { 9101	,100  } ,
-    { 7653	,200  } ,
-    { 9101	,100  } ,
-    { 7653	,400  } ,
-    { 1     ,1000 }
-};
-
-int charge_len = countof(charge);
 
 uint32 get_buttons()
 {
@@ -32,6 +15,15 @@ extern "C" void on_systick()
 {
     ticks += 1;
 }
+
+song::note const charge[6] = {
+    { 15306	,140} ,
+    { 11467	,140} ,
+    { 9101	,140} ,
+    { 7653	,280} ,
+    { 9101	,120} ,
+    { 7653	,500}
+};
 
 extern "C" void user_main()
 {
@@ -49,23 +41,12 @@ extern "C" void user_main()
     TIM14->BDTR |= TIM_BDTR_MOE;
     TIM14->CR1 |= TIM_CR1_CEN;
     
-    int note_index = -1;
-    int delay = 0;
-    int then = ticks;
+    song s;
+    s.init(charge);
+
     while(true) {
-        int tk = ticks;
-        int elapsed = tk - then;
-        if(elapsed >= delay) {
-            then = tk;
-            note_index += 1;
-            if(note_index >= charge_len) {
-                note_index = charge_len - 1;
-            }
-            int t = charge[note_index].timer;
-            TIM14->ARR = t;
-            TIM14->CCR1 = t / 2;
-            delay = charge[note_index].delay;
-        }
+        s.play();
         GPIOA->BSRR = (0xf << (9 + 16)) | (get_buttons() << 9);
+        __WFI();
     }
 }

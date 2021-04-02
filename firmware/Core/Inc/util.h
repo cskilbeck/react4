@@ -14,8 +14,19 @@ using size_t = uint32;
     
 constexpr auto null = nullptr;
 
+extern volatile unsigned long ticks;
+
 template <typename T, size_t N> constexpr size_t countof(T const (&)[N])
 {
     return N;
 }
 
+template <typename T> T min(T a, T b)
+{
+    return a < b ? a : b;
+}
+
+template <typename T> T max(T a, T b)
+{
+    return a > b ? a : b;
+}
