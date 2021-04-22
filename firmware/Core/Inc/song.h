@@ -13,15 +13,20 @@ struct song
 
     int when = 0;
     int notes_to_play = 0;
-    bool play_note = false;
+    note const *next_note = null;
     note const *cur_note = null;
     
+    void init(note const *song, size_t num)
+    {
+        notes_to_play = num;
+        next_note = song;
+        cur_note = null;
+        when = ticks;
+    }
+
     template<size_t N> void init(note const (&song)[N])
     {
-        notes_to_play = N;
-        cur_note = song;
-        when = ticks;
-        play_note = true;
+        init(song, N);
     }
     
     void play()
@@ -30,28 +35,28 @@ struct song
             TIM14->CR1 &= ~TIM_CR1_CEN;
             return;
         }
-        note const *n = cur_note;
-        int t = ticks;
+        
+        uint32 t = ticks;
 
-        if(play_note) {
-            TIM14->ARR = n->timer;
-            play_note = false;
+        if(next_note != null) {
+            TIM14->ARR = next_note->timer;
+            cur_note = next_note;
+            next_note = null;
+            when = t;
         }
 
         int played_time = t - when;
  
-        if(played_time >= n->delay) {
-            play_note = true;
-            cur_note += 1;
+        if(played_time >= cur_note->delay) {
             notes_to_play -= 1;
-            when = ticks;
+            next_note = cur_note + 1;
         }
         
         // volume down ramp
-        int v = 128 - min(128, played_time * 30 / 128);
+        int v = 128 - min(128, played_time * 13 / 128);
         v = 256 - ((((v * v) >> 7) * v) >> 7);
 
-        TIM14->CCR1 = (n->timer * v) / 256;
+        TIM14->CCR1 = (cur_note->timer * v) / 256;
     }
 };
 

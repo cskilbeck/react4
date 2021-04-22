@@ -429,6 +429,11 @@
               <FileType>5</FileType>
               <FilePath>..\core\inc\song.h</FilePath>
             </File>
+            <File>
+              <FileName>led.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\core\inc\led.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
