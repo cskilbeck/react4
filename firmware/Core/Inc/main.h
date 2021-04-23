@@ -82,16 +82,8 @@ void Error_Handler(void);
 #define BTN3_GPIO_Port GPIOA
 #define BUZZER_Pin LL_GPIO_PIN_4
 #define BUZZER_GPIO_Port GPIOA
-#define SNAP0_Pin LL_GPIO_PIN_8
+#define SNAP0_Pin LL_GPIO_PIN_12
 #define SNAP0_GPIO_Port GPIOA
-#define COL0_Pin LL_GPIO_PIN_9
-#define COL0_GPIO_Port GPIOA
-#define COL1_Pin LL_GPIO_PIN_10
-#define COL1_GPIO_Port GPIOA
-#define COL2_Pin LL_GPIO_PIN_11
-#define COL2_GPIO_Port GPIOA
-#define COL3_Pin LL_GPIO_PIN_12
-#define COL3_GPIO_Port GPIOA
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */
