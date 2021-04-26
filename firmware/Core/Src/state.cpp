@@ -186,10 +186,6 @@ void win::start()
 {
     led::set_snap(true);
     song::play(tune::winner);
-
-    for_each_bit([=](int i) {
-        game::score[i] += 1;
-    });
 }
 
 void win::tick()
@@ -197,14 +193,24 @@ void win::tick()
     int flash = (((state_ticks() >> 9) & 1) != 0) ? 0 : 4095;
 
     for_each_bit([=](int i) {
-        led_brightness[max(0, game::score[i] - 1)][i] = flash;
+        led_brightness[game::score[i]][i] = flash;
     });
     if(song::finished()) {
-        for_each_bit([=](int i) {
-            led_brightness[max(0, game::score[i] - 1)][i] = 4095;
+        bool game_won = false;
+        for_each_bit([&](int i) {
+            led_brightness[game::score[i]][i] = 4095;
+            if(++game::score[i] == 4) {
+                game_won = true;
+            }
+            
         });
         led::set_snap(false);
-        state::set<turn_begins>();
+        if(game_won) {
+            state::set<game_over>();
+        }
+        else {
+            state::set<turn_begins>();
+        }
     }
 }
 
@@ -218,6 +224,16 @@ void lose::start()
 }
 
 void lose::tick()
+{
+}
+
+//////////////////////////////////////////////////////////////////////
+
+void game_over::start()
+{
+}
+
+void game_over::tick()
 {
 }
 
