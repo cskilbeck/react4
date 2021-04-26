@@ -25,22 +25,6 @@ namespace
 {
     uint16 dma_x[4] = { TIM_CCER_CC4E | TIM_CCER_CC4P, TIM_CCER_CC3E | TIM_CCER_CC3P, TIM_CCER_CC2E | TIM_CCER_CC2P, TIM_CCER_CC1E | TIM_CCER_CC1P };
 
-    struct io_setter
-    {
-        uint16 *leds;
-
-        //////////////////////////////////////////////////////////////////////
-
-        void set()
-        {
-            uint16 *p = leds;
-            TIM1->CCR1 = *p++;
-            TIM1->CCR2 = *p++;
-            TIM1->CCR3 = *p++;
-            TIM1->CCR4 = *p++;
-        }
-    };
-
     //////////////////////////////////////////////////////////////////////
 
     static int current_column = 0;
@@ -48,11 +32,11 @@ namespace
     //////////////////////////////////////////////////////////////////////
 
     // clang-format off
-    static io_setter led_column[4] = {
-        { led_brightness[3] },
-        { led_brightness[0] },
-        { led_brightness[1] },
-        { led_brightness[2] }
+    uint16 *led_column[4] = {
+        led_brightness[3],
+        led_brightness[0],
+        led_brightness[1],
+        led_brightness[2]
     };
     // clang-format on
 
@@ -83,9 +67,18 @@ namespace led
         TIM3->CR1 = TIM_CR1_CEN | TIM_CR1_CMS_0 | TIM_CR1_CMS_1;
     }
 
-    void cls()
+    void cls(uint16 value)
     {
-        memset(led_brightness, 0, sizeof(led_brightness));
+        for(int i=0; i<4; ++i) {
+            for(int j=0; j<4; ++j) {
+                led_brightness[i][j] = value;
+            }
+        }
+    }
+    
+    void set_snap(bool state)
+    {
+        GPIOA->BSRR = 1 << (12 + (state ? 16 : 0));
     }
 
 }    // namespace led
@@ -96,9 +89,14 @@ extern "C" void TIM1_BRK_UP_TRG_COM_IRQHandler()
 {
     current_column = ++current_column & 3;
 
-    led_column[current_column].set();    // setup next column
+    uint16 *p = led_column[current_column];
 
-    TIM1->SR = 0;    // clear timer1 irq
+    TIM1->CCR1 = *p++;
+    TIM1->CCR2 = *p++;
+    TIM1->CCR3 = *p++;
+    TIM1->CCR4 = *p++;
 
     ticks += 1;
+
+    TIM1->SR = 0;    // clear timer1 irq
 }

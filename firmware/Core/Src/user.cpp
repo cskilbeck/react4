@@ -29,6 +29,5 @@ extern "C" void user_main()
     while(true) {
         song::update();
         state::update();
-        __WFI();
     }
 }

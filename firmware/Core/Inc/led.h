@@ -6,7 +6,9 @@
 namespace led
 {
     void init();
-    void cls();
+    void cls(uint16 value = 0);
+    
+    void set_snap(bool state);
 }
 
 // 12 bits per led of brightness

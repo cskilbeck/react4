@@ -8,10 +8,13 @@
 
 namespace
 {
-    int when = 0;
-    int notes_to_play = 0;
-    song::note const *next_note = null;
-    song::note const *cur_note = null;
+    int when;
+    int notes_to_play;
+    int tune_length;
+    song::note const *next_note;
+    song::note const *cur_note;
+    song::note const *tune;
+    song::loop loop_option = song::loop::single;
 
     constexpr int speed = 18;
 
@@ -32,14 +35,32 @@ namespace song
         TIM14->CR1 |= TIM_CR1_CEN;
     }
 
-    void play(note const *song, size_t num)
+    void play(note const *song, size_t num, loop option)
     {
+        loop_option = option;
+        tune = song;
+        tune_length = num;
         notes_to_play = num;
         next_note = song;
         cur_note = null;
         when = ticks;
         set_port_mode(LL_GPIO_MODE_ALTERNATE);
         TIM14->CR1 |= TIM_CR1_CEN;
+    }
+    
+    void stop()
+    {
+        // switch GPIO into input mode because otherwise it bleeds
+        // some stuff which you can hear
+        set_port_mode(LL_GPIO_MODE_INPUT);
+
+        // and switch off the timer
+        TIMER->CR1 &= ~TIM_CR1_CEN;
+
+        tune = null;
+        tune_length = 0;
+        notes_to_play = 0;
+        loop_option = loop::single;
     }
     
     bool finished()
@@ -50,19 +71,19 @@ namespace song
     void update()
     {
         if(notes_to_play == 0) {
-            // switch GPIO into input mode because otherwise it bleeds
-            // some stuff which you can hear
-            set_port_mode(LL_GPIO_MODE_INPUT);
-
-            // and switch off the timer
-            TIMER->CR1 &= ~TIM_CR1_CEN;
-            return;
+            if(loop_option == loop::single) {
+                stop();
+                return;
+            }
+            else if(loop_option == loop::looping && tune != null) {
+                play(tune, tune_length, loop_option);
+            }
         }
 
         uint32 t = (ticks * speed) >> 8;
 
         if(next_note != null) {
-            TIM14->ARR = next_note->timer;
+            TIM14->ARR = next_note->timer1;
             cur_note = next_note;
             next_note = null;
             when = t;
@@ -75,10 +96,16 @@ namespace song
             next_note = cur_note + 1;
         }
 
-        // volume down ramp
-        int v = 128 - min(128, played_time * 13 / 128);
-        v = 256 - ((((v * v) >> 7) * v) >> 7);
+        // note slide
+        int32 d = (played_time << 16) / cur_note->delay;    // 0..65536
 
-        TIMER->CCR1 = (cur_note->timer * v) / 256;
+        int x = (((cur_note->timer2 - cur_note->timer1) * d) >> 16) + cur_note->timer1;
+        TIMER->ARR = x;
+        
+        // tone ramp
+        int v = 32 - min(32, played_time * 4 / 32);
+        v = 64 - ((((v * v) >> 5) * v) >> 5);
+
+        TIMER->CCR1 = (cur_note->timer1 * v) / 128;
     }
 }    // namespace song

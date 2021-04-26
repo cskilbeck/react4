@@ -20,6 +20,16 @@ extern volatile unsigned long ticks;
 
 //////////////////////////////////////////////////////////////////////
 
+namespace random
+{
+    int seed(int seed);
+    int get(void);
+    int next(int *seed);
+    int from(int seed);
+}
+
+//////////////////////////////////////////////////////////////////////
+
 template <typename T, size_t N> constexpr size_t countof(T const (&)[N]) noexcept
 {
     return N;
