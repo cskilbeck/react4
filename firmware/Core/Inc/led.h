@@ -3,9 +3,11 @@
 #include "main.h"
 #include "util.h"
 
-
-// setup the timers, GPIO, IRQs
-void led_init(void);
+namespace led
+{
+    void init();
+    void cls();
+}
 
 // 12 bits per led of brightness
-extern uint16 led_brightness[16];
+extern uint16 led_brightness[4][4];
