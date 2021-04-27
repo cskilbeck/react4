@@ -13,7 +13,7 @@ using uint16 = uint16_t;
 using uint8 = uint8_t;
 using byte = uint8_t;
 using size_t = uint32;
-    
+
 constexpr auto null = nullptr;
 
 extern volatile unsigned long ticks;
@@ -26,7 +26,7 @@ namespace random
     int get(void);
     int next(int *seed);
     int from(int seed);
-}
+}    // namespace random
 
 //////////////////////////////////////////////////////////////////////
 

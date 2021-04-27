@@ -20,9 +20,9 @@ namespace random
         random_seed = seed;
         return old_seed;
     }
-    
+
     //////////////////////////////////////////////////////////////////////
- 
+
     int next(int *seed)
     {
         int s = *seed;
@@ -40,4 +40,4 @@ namespace random
         return next(&random_seed);
     }
 
-}
+}    // namespace random

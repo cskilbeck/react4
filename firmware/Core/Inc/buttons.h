@@ -11,4 +11,3 @@ static uint32 get_buttons()
     b = (b >> 1) | ((b & 1) << 3);
     return b ^ 0xf;
 }
-

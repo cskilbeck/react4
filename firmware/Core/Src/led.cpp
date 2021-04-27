@@ -69,13 +69,13 @@ namespace led
 
     void cls(uint16 value)
     {
-        for(int i=0; i<4; ++i) {
-            for(int j=0; j<4; ++j) {
+        for(int i = 0; i < 4; ++i) {
+            for(int j = 0; j < 4; ++j) {
                 led_brightness[i][j] = value;
             }
         }
     }
-    
+
     void set_snap(bool state)
     {
         GPIOA->BSRR = 1 << (12 + (state ? 16 : 0));

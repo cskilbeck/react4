@@ -18,7 +18,7 @@ namespace
     uint constexpr one_second = 11719;
     uint constexpr half_second = one_second / 2;
     uint constexpr three_seconds = one_second * 4;
-}
+}    // namespace
 
 //////////////////////////////////////////////////////////////////////
 
@@ -26,7 +26,6 @@ namespace game
 {
     byte score[4];
     byte buttons;
-    byte winner_mask;
     int delay;
 
     void new_game()
@@ -35,12 +34,12 @@ namespace game
         random::seed(ticks);
         state::set<game_start>();
     }
-    
+
     void start_turn()
     {
-        delay = (random::get() % three_seconds) + one_second + half_second;  // 1.5 .. 5.5 seconds
+        delay = (random::get() % three_seconds) + one_second + half_second;    // 1.5 .. 4.5 seconds
     }
-}
+}    // namespace game
 
 //////////////////////////////////////////////////////////////////////
 
@@ -49,9 +48,9 @@ namespace game
 //////////////////////////////////////////////////////////////////////
 // do something for each bit set in game::buttons
 
-template<typename T> static void for_each_bit(T const &fn)
+template <typename T> static void for_each_bit(T const &fn)
 {
-    for(int i=0; i<4; ++i) {
+    for(int i = 0; i < 4; ++i) {
         if((game::buttons & (1 << i)) != 0) {
             fn(i);
         }
@@ -60,6 +59,7 @@ template<typename T> static void for_each_bit(T const &fn)
 
 //////////////////////////////////////////////////////////////////////
 // test
+//////////////////////////////////////////////////////////////////////
 
 void test::start()
 {
@@ -72,6 +72,7 @@ void test::tick()
 
 //////////////////////////////////////////////////////////////////////
 // startup
+//////////////////////////////////////////////////////////////////////
 
 void startup::start()
 {
@@ -90,6 +91,7 @@ void startup::tick()
 
 //////////////////////////////////////////////////////////////////////
 // waiting
+//////////////////////////////////////////////////////////////////////
 
 void waiting::start()
 {
@@ -114,6 +116,8 @@ void waiting::tick()
 }
 
 //////////////////////////////////////////////////////////////////////
+// game_start
+//////////////////////////////////////////////////////////////////////
 
 void game_start::start()
 {
@@ -124,7 +128,7 @@ void game_start::start()
 void game_start::tick()
 {
     int s = (state_ticks() >> 1) & 4095;
-    int level = 4095-s;
+    int level = 4095 - s;
     level = (level * level) >> 12;
     led::cls(level);
     if(get_buttons() != 0) {
@@ -138,13 +142,13 @@ void game_start::tick()
 
 //////////////////////////////////////////////////////////////////////
 // turn_begins
+//////////////////////////////////////////////////////////////////////
 
 void turn_begins::start()
 {
     song::play(tune::waiting_to_start, song::option::looping);
     game::start_turn();
-    waitvb=false;
-    
+    waitvb = false;
 }
 
 void turn_begins::tick()
@@ -159,6 +163,8 @@ void turn_begins::tick()
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+// snap
 //////////////////////////////////////////////////////////////////////
 
 void snap::start()
@@ -183,7 +189,9 @@ void snap::tick()
 }
 
 //////////////////////////////////////////////////////////////////////
+// win
 // add one to the winners, everyone else [loses one | stays the same?]
+//////////////////////////////////////////////////////////////////////
 
 void win::start()
 {
@@ -195,9 +203,7 @@ void win::tick()
 {
     int flash = (((state_ticks() >> 9) & 1) != 0) ? 0 : 4095;
 
-    for_each_bit([=](int i) {
-        led_brightness[game::score[i]][i] = flash;
-    });
+    for_each_bit([=](int i) { led_brightness[game::score[i]][i] = flash; });
     if(song::finished()) {
         bool game_won = false;
         for_each_bit([&](int i) {
@@ -205,20 +211,20 @@ void win::tick()
             if(++game::score[i] == 4) {
                 game_won = true;
             }
-            
         });
         led::set_snap(false);
         if(game_won) {
             state::set<game_over>();
-        }
-        else {
+        } else {
             state::set<turn_begins>();
         }
     }
 }
 
 //////////////////////////////////////////////////////////////////////
+// lose
 // take one away from the losers, everyone else stays the same
+//////////////////////////////////////////////////////////////////////
 
 void lose::start()
 {
@@ -236,13 +242,13 @@ void lose::tick()
         }
     });
     if(level == 0 && song::finished()) {
-        for_each_bit([&](int i) {
-            game::score[i] = max(0, game::score[i] - 1);
-        });
+        for_each_bit([&](int i) { game::score[i] = max(0, game::score[i] - 1); });
         state::set<turn_begins>();
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+// game_over
 //////////////////////////////////////////////////////////////////////
 
 void game_over::start()
@@ -255,9 +261,9 @@ void game_over::tick()
     int level = state_ticks() & 8191;
     level = abs(level - 4096);
     level = (level * level) >> 12;
-    for(int i=0; i<4; ++i) {
+    for(int i = 0; i < 4; ++i) {
         if(game::score[i] == 4) {
-            for(int j=0; j<4; ++j) {
+            for(int j = 0; j < 4; ++j) {
                 led_brightness[j][i] = level;
             }
         }
@@ -288,11 +294,10 @@ void state::update()
 // buffer for the state has to contain the largest of the state structs
 
 #undef STATE
-#define STATE(x) ,x
-size_t constexpr largest_state_size = sizeof(largest_type<
-    byte
+#define STATE(x) , x
+size_t constexpr largest_state_size = sizeof(largest_type<byte
 #include "states.h"
->::type);
+                                                          >::type);
 
 byte state::state_buffer[largest_state_size];
 #undef STATE

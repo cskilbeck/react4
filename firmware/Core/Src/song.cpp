@@ -49,7 +49,7 @@ namespace song
         set_port_mode(LL_GPIO_MODE_ALTERNATE);
         TIMER->CR1 |= TIM_CR1_CEN;
     }
-    
+
     void stop()
     {
         // switch GPIO into input mode because otherwise it bleeds
@@ -64,7 +64,7 @@ namespace song
         notes_to_play = 0;
         loop_option = option::single;
     }
-    
+
     bool finished()
     {
         return notes_to_play == 0;
@@ -76,8 +76,7 @@ namespace song
             if(loop_option == option::single) {
                 stop();
                 return;
-            }
-            else if(loop_option == option::looping && tune != null) {
+            } else if(loop_option == option::looping && tune != null) {
                 play(tune, tune_length, loop_option);
             }
         }
@@ -102,7 +101,7 @@ namespace song
 
         int x = (((cur_note->timer2 - cur_note->timer1) * d) >> 16) + cur_note->timer1;
         TIMER->ARR = x;
-        
+
         // tone ramp
         int v = 32 - min(32, played_time * 4 / 32);
         v = 64 - ((((v * v) >> 5) * v) >> 5);

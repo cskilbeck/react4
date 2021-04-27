@@ -1,13 +1,17 @@
 namespace tune
 {
-    #pragma macro(push)
-    #define pause(x) { 1, 1, x }
+#pragma macro(push)
+#define pause(x) \
+    {            \
+        1, 1, x  \
+    }
 
     using namespace scale;
 
     // clang-format off
 
     song::note const charge[] = {
+        pause(200),
         { G5, G5, 140 },
         { C6, C6, 140 },
         { E6, E6, 140 },
@@ -45,14 +49,14 @@ namespace tune
         { E6, E6, 120 },
         { G6, G6, 500 }
     };
-    
+
     song::note const loser[] = {
         { C5, C5, 500 },
         pause(20),
         { B3, LOW, 1000 },
         pause(300)
     };
-    
+
     song::note const game_over[] = { 
         pause(30),
         { C6, C6, 100 },
@@ -74,6 +78,5 @@ namespace tune
 
     // clang-format on
 
-    #pragma macro pop
-};
-
+#pragma macro pop
+};    // namespace tune
