@@ -53,7 +53,7 @@ namespace tune
     song::note const loser[] = {
         { C5, C5, 500 },
         pause(20),
-        { B3, LOW, 1000 },
+        { B3, LOW, 700 },
         pause(300)
     };
 

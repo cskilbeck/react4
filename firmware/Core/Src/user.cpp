@@ -1,5 +1,4 @@
 //////////////////////////////////////////////////////////////////////
-// game/score etc
 
 #include <string.h>
 #include "main.h"
@@ -16,11 +15,9 @@ volatile unsigned long ticks = 0;
 
 extern "C" void user_main()
 {
-    // enable 1ms tick
-    SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
+    // disable systick
     NVIC_DisableIRQ(SysTick_IRQn);
-
-    GPIOA->BSRR = 1 << 12;
+    SysTick->CTRL = 0;
 
     led::init();
     song::init();

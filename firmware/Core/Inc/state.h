@@ -16,13 +16,8 @@ struct state
         reset();
     }
 
-    virtual void start()
-    {
-    }
-
-    virtual void tick()
-    {
-    }
+    virtual void start() = 0;
+    virtual void tick() = 0;
 
     void reset()
     {
@@ -37,28 +32,110 @@ struct state
     static void init();
     static void update();
 
-    template <typename T> static void set()
-    {
-        state *s = new(state_buffer) T();
-        waitvb = true;
-        s->start();
-    }
+    template <typename T> static void set();
+
+    static size_t constexpr largest_state_size = 32;
 
     static bool waitvb;
-    static byte state_buffer[];
+    static byte state_buffer[largest_state_size];
 };
 
 //////////////////////////////////////////////////////////////////////
+// for debugging
 
-#undef STATE
-#define STATE(x)               \
-    struct x : state           \
-    {                          \
-        void start() override; \
-        void tick() override;  \
-    };
-
-#include "states.h"
-#undef STATE
+struct test : state
+{
+    void start() override;
+    void tick() override;
+};
 
 //////////////////////////////////////////////////////////////////////
+// boot anim
+
+struct startup : state
+{
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// attract mode
+
+struct waiting : state
+{
+    uint button_idle;
+    
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// game starting
+
+struct game_start : state
+{
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// turn starting (random delay)
+
+struct turn_begins : state
+{
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// light goes on
+
+struct snap : state
+{
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// somebody won a point
+
+struct win : state
+{
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// somebody jumped the gun
+
+struct lose : state
+{
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// somebody won the game
+
+struct game_over : state
+{
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// set a new state
+
+template <typename T> void state::set()
+{
+    // largest_state_size big enough?
+    static_assert(sizeof(T) <= largest_state_size, "Make largest_state_size bigger");
+
+    // setup vtable
+    state *s = new(state_buffer) T();
+
+    // default waitvb true
+    waitvb = true;
+
+    s->start();
+}

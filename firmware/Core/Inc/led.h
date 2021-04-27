@@ -7,9 +7,8 @@ namespace led
 {
     void init();
     void cls(uint16 value = 0);
-
+    void set(int col, int row, uint16 value);
     void set_snap(bool state);
+    int gamma(int x);
+    
 }    // namespace led
-
-// 12 bits per led of brightness
-extern uint16 led_brightness[4][4];

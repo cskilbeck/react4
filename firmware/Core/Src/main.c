@@ -539,7 +539,7 @@ static void MX_GPIO_Init(void)
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
 
   /**/
-  LL_GPIO_ResetOutputPin(SNAP0_GPIO_Port, SNAP0_Pin);
+  LL_GPIO_SetOutputPin(SNAP0_GPIO_Port, SNAP0_Pin);
 
   /**/
   GPIO_InitStruct.Pin = BTN0_Pin;

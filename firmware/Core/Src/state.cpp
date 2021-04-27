@@ -37,7 +37,7 @@ namespace game
 
     void start_turn()
     {
-        delay = (random::get() % three_seconds) + one_second + half_second;    // 1.5 .. 4.5 seconds
+        delay = (random::get() & 0x7fff) + 18000;    // approx 1.5 .. 4.5 seconds
     }
 }    // namespace game
 
@@ -64,6 +64,7 @@ template <typename T> static void for_each_bit(T const &fn)
 void test::start()
 {
     led::cls();
+    led::set(0, 0, 4095);
 }
 
 void test::tick()
@@ -81,9 +82,7 @@ void startup::start()
 
 void startup::tick()
 {
-    int z = min(4095U, state_ticks() >> 1);
-    int q = (z * z) >> 12;
-    led::cls(q);
+    led::cls(led::gamma(min(4095U, state_ticks() >> 1)));
     if(song::finished()) {
         state::set<waiting>();
     }
@@ -96,21 +95,28 @@ void startup::tick()
 void waiting::start()
 {
     led::cls();
+    song::stop();
+    led::set_snap(false);
+    button_idle = 0;
 }
 
 void waiting::tick()
 {
     int t = state_ticks();
-    uint x = t >> 10;
-    int col = x & 3;
-    int row = (x >> 2) & 3;
-    led_brightness[col][row] = 4000;
-    led::set_snap(col == 0 && row == 0);
-    if(x > 0 && (x & 15) == 0) {
+    int x = t >> 12;
+    int y = t >> 14;
+    led::set(x & 3, y & 3, led::gamma(t & 4095));
+    if(y > 3) {
         reset();
         led::cls();
     }
-    if(get_buttons() != 0) {
+    if(get_buttons() == 0) {
+        button_idle += 1;
+    }
+    else if(button_idle < 1000) {
+        button_idle = 0;
+    }
+    else {
         game::new_game();
     }
 }
@@ -127,10 +133,8 @@ void game_start::start()
 
 void game_start::tick()
 {
-    int s = (state_ticks() >> 1) & 4095;
-    int level = 4095 - s;
-    level = (level * level) >> 12;
-    led::cls(level);
+    int level = 4095 - ((state_ticks() >> 1) & 4095);
+    led::cls(led::gamma(level));
     if(get_buttons() != 0) {
         reset();
     }
@@ -174,23 +178,22 @@ void snap::start()
 
 void snap::tick()
 {
-    led::set_snap(((state_ticks() >> 8) & 3) == 0);
+    int t = state_ticks();
+    led::set_snap(((t >> 8) & 3) == 0);
     uint32 b = get_buttons();
     if(b != 0) {
         game::buttons = b;
         state::set<win>();
     }
-    if(state_ticks() > (one_second * 15)) {
-        song::stop();
-        led::set_snap(false);
-        led::cls();
+
+    // game abandoned?
+    if(t > (one_second * 15)) {
         state::set<waiting>();
     }
 }
 
 //////////////////////////////////////////////////////////////////////
-// win
-// add one to the winners, everyone else [loses one | stays the same?]
+// win - add one to the winner(s)
 //////////////////////////////////////////////////////////////////////
 
 void win::start()
@@ -203,11 +206,11 @@ void win::tick()
 {
     int flash = (((state_ticks() >> 9) & 1) != 0) ? 0 : 4095;
 
-    for_each_bit([=](int i) { led_brightness[game::score[i]][i] = flash; });
+    for_each_bit([=](int i) { led::set(game::score[i], i, flash); });
     if(song::finished()) {
         bool game_won = false;
         for_each_bit([&](int i) {
-            led_brightness[game::score[i]][i] = 4095;
+            led::set(game::score[i], i, 4095);
             if(++game::score[i] == 4) {
                 game_won = true;
             }
@@ -222,8 +225,7 @@ void win::tick()
 }
 
 //////////////////////////////////////////////////////////////////////
-// lose
-// take one away from the losers, everyone else stays the same
+// lose - take one away from the loser(s)
 //////////////////////////////////////////////////////////////////////
 
 void lose::start()
@@ -234,11 +236,10 @@ void lose::start()
 
 void lose::tick()
 {
-    int level = 4095 - min(4095, int(state_ticks() >> 2));
-    level = (level * level) >> 12;
+    int level = led::gamma(4095 - min(4095, int(state_ticks() >> 2)));
     for_each_bit([&](int i) {
         if(game::score[i] > 0) {
-            led_brightness[game::score[i] - 1][i] = level;
+            led::set(game::score[i] - 1, i, level);
         }
     });
     if(level == 0 && song::finished()) {
@@ -258,17 +259,19 @@ void game_over::start()
 
 void game_over::tick()
 {
-    int level = state_ticks() & 8191;
-    level = abs(level - 4096);
-    level = (level * level) >> 12;
-    for(int i = 0; i < 4; ++i) {
-        if(game::score[i] == 4) {
-            for(int j = 0; j < 4; ++j) {
-                led_brightness[j][i] = level;
-            }
+    int t = state_ticks();
+    int level = led::gamma(abs((t & 8191) - 4096));
+
+    for_each_bit([&](int i) {
+        for(int j = 0; j < 4; ++j) {
+            led::set(j, i, level);
         }
-    }
-    if(state_ticks() > (one_second * 2) && get_buttons() != 0) {
+    });
+
+    auto constexpr sec_10 = one_second * 10;
+    auto constexpr sec_2 = one_second * 2;
+
+    if((t > sec_10) || (t > sec_2 && get_buttons() != 0)) {
         state::set<waiting>();
     }
 }
@@ -293,13 +296,6 @@ void state::update()
 //////////////////////////////////////////////////////////////////////
 // buffer for the state has to contain the largest of the state structs
 
-#undef STATE
-#define STATE(x) , x
-size_t constexpr largest_state_size = sizeof(largest_type<byte
-#include "states.h"
-                                                          >::type);
-
 byte state::state_buffer[largest_state_size];
-#undef STATE
 
 bool state::waitvb;

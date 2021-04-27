@@ -17,26 +17,19 @@
 
 //////////////////////////////////////////////////////////////////////
 
-uint16 led_brightness[4][4];
-
-//////////////////////////////////////////////////////////////////////
-
 namespace
 {
-    uint16 dma_x[4] = { TIM_CCER_CC4E | TIM_CCER_CC4P, TIM_CCER_CC3E | TIM_CCER_CC3P, TIM_CCER_CC2E | TIM_CCER_CC2P, TIM_CCER_CC1E | TIM_CCER_CC1P };
-
-    //////////////////////////////////////////////////////////////////////
-
-    static int current_column = 0;
+    uint16 led_brightness[16];
+    int current_column = 0;
 
     //////////////////////////////////////////////////////////////////////
 
     // clang-format off
-    uint16 *led_column[4] = {
-        led_brightness[3],
-        led_brightness[0],
-        led_brightness[1],
-        led_brightness[2]
+    uint16 dma_x[4] = {
+        TIM_CCER_CC4E | TIM_CCER_CC4P,
+        TIM_CCER_CC3E | TIM_CCER_CC3P,
+        TIM_CCER_CC2E | TIM_CCER_CC2P,
+        TIM_CCER_CC1E | TIM_CCER_CC1P
     };
     // clang-format on
 
@@ -46,6 +39,16 @@ namespace
 
 namespace led
 {
+    int gamma(int x)
+    {
+        return (x * x) >> 12;
+    }
+    
+    void set(int row, int col, uint16 value)
+    {
+        led_brightness[(row << 2) + col] = value;
+    }
+
     void init()
     {
         DMA1_Channel5->CNDTR = 4;
@@ -69,10 +72,8 @@ namespace led
 
     void cls(uint16 value)
     {
-        for(int i = 0; i < 4; ++i) {
-            for(int j = 0; j < 4; ++j) {
-                led_brightness[i][j] = value;
-            }
+        for(int i = 0; i < 16; ++i) {
+            led_brightness[i] = value;
         }
     }
 
@@ -87,14 +88,14 @@ namespace led
 
 extern "C" void TIM1_BRK_UP_TRG_COM_IRQHandler()
 {
-    current_column = ++current_column & 3;
+    uint16 *p = led_brightness + current_column;
 
-    uint16 *p = led_column[current_column];
+    TIM1->CCR1 = p[0];
+    TIM1->CCR2 = p[1];
+    TIM1->CCR3 = p[2];
+    TIM1->CCR4 = p[3];
 
-    TIM1->CCR1 = *p++;
-    TIM1->CCR2 = *p++;
-    TIM1->CCR3 = *p++;
-    TIM1->CCR4 = *p++;
+    current_column = (current_column + 4) & 15;
 
     ticks += 1;
 
