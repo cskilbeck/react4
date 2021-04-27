@@ -3,20 +3,23 @@
 #include "song.h"
 
 #define TIMER TIM14
+#define CHANNEL LL_TIM_CHANNEL_CH1
 #define PORT GPIOA
 #define PIN 4
 
 namespace
 {
+    int constexpr speed = 18;
+
+    song::note const *tune;
+    int tune_length;
+    song::option loop_option = song::option::single;
+
     int when;
     int notes_to_play;
-    int tune_length;
+
     song::note const *next_note;
     song::note const *cur_note;
-    song::note const *tune;
-    song::loop loop_option = song::loop::single;
-
-    constexpr int speed = 18;
 
     void set_port_mode(uint32 mode)
     {
@@ -30,22 +33,21 @@ namespace song
     void init()
     {
         // TIM14 for buzzer
-        TIM14->CCER |= LL_TIM_CHANNEL_CH1;
-        TIM14->BDTR |= TIM_BDTR_MOE;
-        TIM14->CR1 |= TIM_CR1_CEN;
+        TIMER->CCER |= CHANNEL;
+        TIMER->BDTR |= TIM_BDTR_MOE;
     }
 
-    void play(note const *song, size_t num, loop option)
+    void play(note const *song, size_t num, option opt)
     {
-        loop_option = option;
+        loop_option = opt;
         tune = song;
         tune_length = num;
         notes_to_play = num;
         next_note = song;
         cur_note = null;
-        when = ticks;
+        when = (ticks * speed) >> 8;
         set_port_mode(LL_GPIO_MODE_ALTERNATE);
-        TIM14->CR1 |= TIM_CR1_CEN;
+        TIMER->CR1 |= TIM_CR1_CEN;
     }
     
     void stop()
@@ -60,7 +62,7 @@ namespace song
         tune = null;
         tune_length = 0;
         notes_to_play = 0;
-        loop_option = loop::single;
+        loop_option = option::single;
     }
     
     bool finished()
@@ -71,11 +73,11 @@ namespace song
     void update()
     {
         if(notes_to_play == 0) {
-            if(loop_option == loop::single) {
+            if(loop_option == option::single) {
                 stop();
                 return;
             }
-            else if(loop_option == loop::looping && tune != null) {
+            else if(loop_option == option::looping && tune != null) {
                 play(tune, tune_length, loop_option);
             }
         }
@@ -83,7 +85,6 @@ namespace song
         uint32 t = (ticks * speed) >> 8;
 
         if(next_note != null) {
-            TIM14->ARR = next_note->timer1;
             cur_note = next_note;
             next_note = null;
             when = t;

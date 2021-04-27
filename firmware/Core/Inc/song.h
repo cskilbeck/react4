@@ -12,16 +12,16 @@ namespace song
         uint16 delay;
     };
 
-    enum class loop
+    enum class option
     {
-        single,
-        looping
+        single = 0,
+        looping = 1
     };
 
-    void play(note const *song, size_t num, loop option = loop::single);
-    template <size_t N> void play(note const (&song)[N], loop option = loop::single)
+    void play(note const *song, size_t num, option opt = option::single);
+    template <size_t N> void play(note const (&song)[N], option opt = option::single)
     {
-        play(song, N, option);
+        play(song, N, opt);
     }
 
     bool finished();
@@ -40,6 +40,7 @@ namespace scale
         return int(48000000.0f / 44.0f / freq);
     }
 
+    int constexpr LOW = note(150);
     int constexpr B3 = note(246.94);
     int constexpr C4 = note(261.63);
     int constexpr C_SHARP_4 = note(277.18);

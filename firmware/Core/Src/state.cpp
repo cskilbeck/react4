@@ -47,6 +47,18 @@ namespace game
 #include "songs.inl"
 
 //////////////////////////////////////////////////////////////////////
+// do something for each bit set in game::buttons
+
+template<typename T> static void for_each_bit(T const &fn)
+{
+    for(int i=0; i<4; ++i) {
+        if((game::buttons & (1 << i)) != 0) {
+            fn(i);
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////////////
 // test
 
 void test::start()
@@ -129,7 +141,7 @@ void game_start::tick()
 
 void turn_begins::start()
 {
-    song::play(tune::waiting_to_start, song::loop::looping);
+    song::play(tune::waiting_to_start, song::option::looping);
     game::start_turn();
     waitvb=false;
     
@@ -151,7 +163,7 @@ void turn_begins::tick()
 
 void snap::start()
 {
-    song::play(tune::snap, song::loop::looping);
+    song::play(tune::snap, song::option::looping);
 }
 
 void snap::tick()
@@ -171,21 +183,12 @@ void snap::tick()
 }
 
 //////////////////////////////////////////////////////////////////////
-// add one to the winners, everyone else loses one
-
-template<typename T> static void for_each_bit(T const &fn)
-{
-    for(int i=0; i<4; ++i) {
-        if((game::buttons & (1 << i)) != 0) {
-            fn(i);
-        }
-    }
-}
+// add one to the winners, everyone else [loses one | stays the same?]
 
 void win::start()
 {
-    led::set_snap(true);
     song::play(tune::winner);
+    led::set_snap(true);
 }
 
 void win::tick()
@@ -220,21 +223,48 @@ void win::tick()
 void lose::start()
 {
     song::play(tune::loser);
-    led::set_snap(true);
+    led::set_snap(false);
 }
 
 void lose::tick()
 {
+    int level = 4095 - min(4095, int(state_ticks() >> 2));
+    level = (level * level) >> 12;
+    for_each_bit([&](int i) {
+        if(game::score[i] > 0) {
+            led_brightness[game::score[i] - 1][i] = level;
+        }
+    });
+    if(level == 0 && song::finished()) {
+        for_each_bit([&](int i) {
+            game::score[i] = max(0, game::score[i] - 1);
+        });
+        state::set<turn_begins>();
+    }
 }
 
 //////////////////////////////////////////////////////////////////////
 
 void game_over::start()
 {
+    song::play(tune::game_over);
 }
 
 void game_over::tick()
 {
+    int level = state_ticks() & 8191;
+    level = abs(level - 4096);
+    level = (level * level) >> 12;
+    for(int i=0; i<4; ++i) {
+        if(game::score[i] == 4) {
+            for(int j=0; j<4; ++j) {
+                led_brightness[j][i] = level;
+            }
+        }
+    }
+    if(state_ticks() > (one_second * 2) && get_buttons() != 0) {
+        state::set<waiting>();
+    }
 }
 
 //////////////////////////////////////////////////////////////////////
