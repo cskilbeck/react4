@@ -64,7 +64,7 @@ struct startup : state
 struct waiting : state
 {
     uint button_idle;
-    
+
     void start() override;
     void tick() override;
 };
@@ -79,9 +79,20 @@ struct game_start : state
 };
 
 //////////////////////////////////////////////////////////////////////
-// turn starting (random delay)
+// turn starting (wait for buttons to all be released)
 
 struct turn_begins : state
+{
+    uint button_idle;
+    
+    void start() override;
+    void tick() override;
+};
+
+//////////////////////////////////////////////////////////////////////
+// turn_wait
+
+struct turn_wait : state
 {
     void start() override;
     void tick() override;

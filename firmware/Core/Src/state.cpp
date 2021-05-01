@@ -150,12 +150,35 @@ void game_start::tick()
 
 void turn_begins::start()
 {
+    song::stop();
+    led::set_snap(false);
+    button_idle = 0;
+}
+
+void turn_begins::tick()
+{
+    constexpr int idle_time = one_second / 10;
+    if(button_idle > idle_time) {
+        state::set<turn_wait>();
+    } else if(get_buttons() != 0) {
+        button_idle = 0;
+    } else {
+        button_idle += 1;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////
+// turn_wait
+//////////////////////////////////////////////////////////////////////
+
+void turn_wait::start()
+{
     song::play(tune::waiting_to_start, song::option::looping);
     game::start_turn();
     waitvb = false;
 }
 
-void turn_begins::tick()
+void turn_wait::tick()
 {
     uint32 b = get_buttons();
     if(b != 0) {
